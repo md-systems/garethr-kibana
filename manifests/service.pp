@@ -1,11 +1,21 @@
 class kibana::service {
+  $kibana_home = '/opt/kibana'
+  $user = 'root'
+  $pid_dir = '/var/run'
+  $log_dir = '/var/log'
+  $es_port = '9200'
+  $es_ip = '127.0.0.1'
+  $server_name = '0.0.0.0'
+  $smart_index = true
+  $app_name = 'kibana'
+  $kibana_port = 5601
+
   file { '/etc/init.d/kibana':
-    ensure => link,
-    target => '/lib/init/upstart-job',
+    mode    => 755,
+    content => template('kibana/etc/init.d/kibana.erb')
   }
 
   file { '/etc/init/kibana.conf':
-    ensure  => present,
     content => template('kibana/etc/init/kibana.conf.erb')
   }
 
@@ -14,12 +24,7 @@ class kibana::service {
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
-    provider   => upstart,
-    require    => [
-      File['/etc/init.d/kibana'],
-      File['/etc/init/kibana.conf'],
-    ],
   }
 
-  File['/etc/init/kibana.conf'] ~> Service['kibana']
+  File['/etc/init.d/kibana'] -> File['/etc/init/kibana.conf'] ~> Service['kibana']
 }
